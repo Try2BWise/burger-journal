@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Burgers">
+<meta name="theme-color" content="#c8560a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Burger Journal</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -801,16 +805,6 @@ let currentRating = 0;
 let selectedToppings = new Set();
 let viewingId = null;
 
-// ── SEED DATA ──
-if (burgers.length === 0) {
-  burgers = [
-    { id: 1, name: 'Classic Smashburger', restaurant: 'The Pit Stop', date: '2025-03-22', rating: 5, toppings: ['Cheese','Pickles','Special Sauce','Onion'], notes: 'Perfect crispy crust. The sauce is their secret weapon. Would absolutely order again.', price: '12.50' },
-    { id: 2, name: 'Mushroom Swiss Melt', restaurant: 'Brew & Grind', date: '2025-03-08', rating: 4, toppings: ['Cheese','Mushrooms','Caramelized Onion'], notes: 'Rich, earthy. Bun could be better but the patty was excellent quality.', price: '15.00' },
-    { id: 3, name: 'Backyard BBQ Stack', restaurant: 'Smoke & Bone', date: '2025-02-14', rating: 5, toppings: ['Bacon','BBQ Sauce','Cheese','Onion'], notes: 'Valentine\'s Day burger. Smoky, sticky, messy perfection.', price: '18.00' },
-  ];
-  save();
-}
-
 function save() {
   localStorage.setItem('bj_burgers', JSON.stringify(burgers));
 }
@@ -828,7 +822,6 @@ function showScreen(name, id) {
 function switchTab(name, btn) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  // update active state in both nav bars if needed
   showScreen(name);
 }
 
@@ -881,7 +874,6 @@ function renderStats() {
   const fives = burgers.filter(b => b.rating === 5).length;
   const spots = new Set(burgers.map(b => b.restaurant.trim().toLowerCase())).size;
 
-  // Top restaurants
   const restCount = {};
   burgers.forEach(b => {
     const k = b.restaurant.trim();
@@ -889,7 +881,6 @@ function renderStats() {
   });
   const topRests = Object.entries(restCount).sort((a,b) => b[1]-a[1]).slice(0,5);
 
-  // Top toppings
   const topCount = {};
   burgers.forEach(b => b.toppings.forEach(t => { topCount[t] = (topCount[t]||0)+1; }));
   const topTops = Object.entries(topCount).sort((a,b) => b[1]-a[1]).slice(0,5);
@@ -900,42 +891,20 @@ function renderStats() {
       <div class="big-stat-label">Burgers Logged</div>
     </div>
     <div class="stat-grid">
-      <div class="stat-tile">
-        <div class="stat-tile-num">${avg}</div>
-        <div class="stat-tile-label">Avg Rating</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-tile-num">${fives}</div>
-        <div class="stat-tile-label">5-Star Burgers</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-tile-num">${spots}</div>
-        <div class="stat-tile-label">Restaurants</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-tile-num">${Object.keys(topCount).length}</div>
-        <div class="stat-tile-label">Unique Toppings</div>
-      </div>
+      <div class="stat-tile"><div class="stat-tile-num">${avg}</div><div class="stat-tile-label">Avg Rating</div></div>
+      <div class="stat-tile"><div class="stat-tile-num">${fives}</div><div class="stat-tile-label">5-Star Burgers</div></div>
+      <div class="stat-tile"><div class="stat-tile-num">${spots}</div><div class="stat-tile-label">Restaurants</div></div>
+      <div class="stat-tile"><div class="stat-tile-num">${Object.keys(topCount).length}</div><div class="stat-tile-label">Unique Toppings</div></div>
     </div>
     ${topRests.length > 1 ? `
     <div class="leaderboard">
       <div class="leaderboard-title">Top Restaurants</div>
-      ${topRests.map((r, i) => `
-        <div class="leaderboard-row">
-          <div class="rank">${i+1}</div>
-          <div class="leaderboard-name">${esc(r[0])}</div>
-          <div class="leaderboard-count">${r[1]} burger${r[1]>1?'s':''}</div>
-        </div>`).join('')}
+      ${topRests.map((r, i) => `<div class="leaderboard-row"><div class="rank">${i+1}</div><div class="leaderboard-name">${esc(r[0])}</div><div class="leaderboard-count">${r[1]} burger${r[1]>1?'s':''}</div></div>`).join('')}
     </div>` : ''}
     ${topTops.length > 1 ? `
     <div class="leaderboard">
       <div class="leaderboard-title">Favourite Toppings</div>
-      ${topTops.map((t, i) => `
-        <div class="leaderboard-row">
-          <div class="rank">${i+1}</div>
-          <div class="leaderboard-name">${esc(t[0])}</div>
-          <div class="leaderboard-count">${t[1]}×</div>
-        </div>`).join('')}
+      ${topTops.map((t, i) => `<div class="leaderboard-row"><div class="rank">${i+1}</div><div class="leaderboard-name">${esc(t[0])}</div><div class="leaderboard-count">${t[1]}×</div></div>`).join('')}
     </div>` : ''}
   `;
 }
@@ -1056,6 +1025,15 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── SERVICE WORKER REGISTRATION ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW failed:', err));
+  });
 }
 
 // ── INIT ──
