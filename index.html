@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Burger Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --char: #1a0a00;
+    --bun: #c8560a;
+    --mustard: #e8b84b;
+    --lettuce: #4a7c59;
+    --cream: #fdf6ec;
+    --smoke: #f5ece0;
+    --ash: #8c7060;
+    --red: #c0392b;
+    --card: #fff9f3;
+    --border: #ecdcc8;
+    --shadow: rgba(30,10,0,0.12);
+    --safe-bottom: env(safe-area-inset-bottom, 20px);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--char);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--char);
+    overflow: hidden;
+  }
+
+  /* ── PHONE SHELL ── */
+  #app {
+    max-width: 430px;
+    height: 100dvh;
+    margin: 0 auto;
+    background: var(--cream);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+  }
+  .screen.active { display: flex; }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 54px 22px 16px;
+    background: var(--bun);
+    background-image:
+      radial-gradient(ellipse at 20% 0%, #d96b1a 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, #a03d05 0%, transparent 50%);
+    color: var(--cream);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.1rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+  .header p {
+    font-size: 0.78rem;
+    font-weight: 300;
+    opacity: 0.82;
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .header-emoji {
+    position: absolute;
+    right: 20px;
+    top: 46px;
+    font-size: 3.2rem;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: flex;
+    gap: 0;
+    background: var(--char);
+    flex-shrink: 0;
+  }
+  .stat {
+    flex: 1;
+    text-align: center;
+    padding: 10px 6px;
+    border-right: 1px solid #2d1a0a;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--mustard);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.62rem;
+    font-weight: 500;
+    color: var(--ash);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+
+  /* ── SCROLL AREA ── */
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px 14px calc(var(--safe-bottom) + 80px);
+  }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ash);
+    margin: 8px 2px 10px;
+  }
+
+  /* ── BURGER CARD ── */
+  .burger-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    box-shadow: 0 2px 10px var(--shadow);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .burger-card:active { transform: scale(0.98); box-shadow: 0 1px 4px var(--shadow); }
+
+  .card-emoji {
+    font-size: 2.6rem;
+    line-height: 1;
+    flex-shrink: 0;
+    width: 48px;
+    text-align: center;
+  }
+  .card-body { flex: 1; min-width: 0; }
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--char);
+  }
+  .card-restaurant {
+    font-size: 0.78rem;
+    color: var(--bun);
+    font-weight: 500;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .card-date {
+    font-size: 0.7rem;
+    color: var(--ash);
+    font-weight: 400;
+  }
+  .stars {
+    font-size: 0.75rem;
+    color: var(--mustard);
+    letter-spacing: 1px;
+  }
+  .toppings-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 7px;
+  }
+  .topping-tag {
+    background: var(--smoke);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 0.66rem;
+    font-weight: 500;
+    color: var(--ash);
+    text-transform: capitalize;
+  }
+
+  /* ── FAB ── */
+  .fab {
+    position: absolute;
+    bottom: calc(var(--safe-bottom) + 76px);
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: var(--bun);
+    background-image: radial-gradient(circle at 30% 30%, #d96b1a, var(--bun));
+    color: white;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(200,86,10,0.5);
+    cursor: pointer;
+    transition: transform 0.15s;
+    z-index: 10;
+    -webkit-tap-highlight-color: transparent;
+    line-height: 1;
+  }
+  .fab:active { transform: scale(0.93); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    display: flex;
+    background: var(--char);
+    border-top: 1px solid #2d1a0a;
+    padding-bottom: var(--safe-bottom);
+    flex-shrink: 0;
+    z-index: 20;
+  }
+  .nav-btn {
+    flex: 1;
+    border: none;
+    background: none;
+    color: var(--ash);
+    padding: 10px 0 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s;
+  }
+  .nav-btn.active { color: var(--mustard); }
+  .nav-icon { font-size: 1.3rem; line-height: 1; }
+  .nav-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ── ADD SCREEN ── */
+  .add-header {
+    padding: 54px 22px 18px;
+    background: var(--char);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .add-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cream);
+    flex: 1;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--mustard);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .save-btn {
+    background: var(--bun);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 7px 18px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── FORM ── */
+  .form-scroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 16px calc(var(--safe-bottom) + 30px);
+  }
+  .form-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .form-section-title {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ash);
+    padding: 10px 14px 4px;
+  }
+  .form-row {
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--border);
+    min-height: 48px;
+  }
+  .form-row:last-child { border-bottom: none; }
+  .form-label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--char);
+    width: 88px;
+    flex-shrink: 0;
+  }
+  .form-input {
+    flex: 1;
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    color: var(--char);
+    padding: 12px 0;
+    outline: none;
+    text-align: right;
+    color: #6b4c30;
+  }
+  .form-input::placeholder { color: #c8b09a; }
+  textarea.form-input {
+    text-align: left;
+    resize: none;
+    min-height: 70px;
+    padding: 12px 0;
+  }
+
+  /* ── STAR RATING ── */
+  .star-rating {
+    display: flex;
+    gap: 6px;
+    padding: 12px 0;
+    margin-left: auto;
+  }
+  .star-btn {
+    font-size: 1.4rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s;
+  }
+  .star-btn:active { transform: scale(1.3); }
+
+  /* ── TOPPING CHIPS ── */
+  .toppings-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 12px 14px 14px;
+  }
+  .topping-chip {
+    background: var(--smoke);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ash);
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .topping-chip.selected {
+    background: var(--bun);
+    border-color: var(--bun);
+    color: white;
+  }
+
+  /* ── DETAIL SCREEN ── */
+  .detail-header {
+    padding: 54px 22px 0;
+    background: var(--bun);
+    background-image: radial-gradient(ellipse at 80% 0%, #d96b1a 0%, transparent 60%);
+    color: var(--cream);
+    flex-shrink: 0;
+  }
+  .detail-back {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 0 12px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .detail-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1.1;
+    padding-bottom: 6px;
+  }
+  .detail-restaurant {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    padding-bottom: 16px;
+  }
+  .detail-scroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 16px calc(var(--safe-bottom) + 20px);
+  }
+  .detail-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .detail-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ash);
+    width: 80px;
+    flex-shrink: 0;
+  }
+  .detail-row-value {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--char);
+  }
+  .detail-notes {
+    font-size: 0.9rem;
+    color: var(--char);
+    line-height: 1.55;
+    padding: 14px 16px;
+    font-style: italic;
+  }
+  .delete-btn {
+    width: 100%;
+    background: none;
+    border: 1px solid #ffc8c8;
+    border-radius: 14px;
+    padding: 14px;
+    color: var(--red);
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    margin-top: 4px;
+  }
+
+  /* ── STATS SCREEN ── */
+  .stats-header {
+    padding: 54px 22px 18px;
+    background: var(--char);
+    flex-shrink: 0;
+  }
+  .stats-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--cream);
+  }
+  .stats-header p {
+    font-size: 0.75rem;
+    color: var(--ash);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .big-stat {
+    background: var(--bun);
+    background-image: radial-gradient(circle at 20% 20%, #d96b1a, var(--bun));
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 12px;
+    text-align: center;
+    box-shadow: 0 6px 24px rgba(200,86,10,0.35);
+  }
+  .big-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    font-weight: 900;
+    color: white;
+    line-height: 1;
+  }
+  .big-stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 6px;
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .stat-tile {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-tile-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--char);
+    line-height: 1;
+  }
+  .stat-tile-label {
+    font-size: 0.68rem;
+    color: var(--ash);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-top: 4px;
+  }
+  .leaderboard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .leaderboard-title {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ash);
+    padding: 10px 16px 4px;
+  }
+  .leaderboard-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .leaderboard-row:last-child { border-bottom: none; }
+  .rank {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--mustard);
+    width: 18px;
+    text-align: center;
+  }
+  .leaderboard-name {
+    flex: 1;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--char);
+  }
+  .leaderboard-count {
+    font-size: 0.75rem;
+    color: var(--ash);
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 30px;
+    text-align: center;
+    flex: 1;
+  }
+  .empty-emoji { font-size: 4rem; margin-bottom: 16px; }
+  .empty-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--char);
+    margin-bottom: 8px;
+  }
+  .empty-sub { font-size: 0.85rem; color: var(--ash); line-height: 1.5; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: absolute;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--char);
+    color: var(--mustard);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ HOME SCREEN ═══ -->
+  <div class="screen active" id="screen-home">
+    <div class="header">
+      <h1>Burger Journal</h1>
+      <p>Your personal record</p>
+      <div class="header-emoji">🍔</div>
+    </div>
+    <div class="stats-bar" id="home-stats">
+      <div class="stat">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-label">Burgers</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="stat-avg">—</div>
+        <div class="stat-label">Avg Rating</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="stat-spots">0</div>
+        <div class="stat-label">Spots</div>
+      </div>
+    </div>
+    <div class="scroll-area" id="burger-list-container">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-emoji">🍔</div>
+        <div class="empty-title">No burgers yet!</div>
+        <div class="empty-sub">Tap + to log your first burger and start building your collection.</div>
+      </div>
+      <div id="burger-list"></div>
+    </div>
+    <button class="fab" onclick="showScreen('add')" aria-label="Add burger">+</button>
+    <nav class="bottom-nav">
+      <button class="nav-btn active" onclick="switchTab('home', this)">
+        <span class="nav-icon">🍔</span>
+        <span class="nav-label">Journal</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('stats', this)">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Stats</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ═══ STATS SCREEN ═══ -->
+  <div class="screen" id="screen-stats">
+    <div class="stats-header">
+      <h2>Your Stats</h2>
+      <p>The full picture</p>
+    </div>
+    <div class="scroll-area" id="stats-content">
+      <div class="empty-state">
+        <div class="empty-emoji">📊</div>
+        <div class="empty-title">Log some burgers first!</div>
+        <div class="empty-sub">Stats will appear here once you have a few burgers recorded.</div>
+      </div>
+    </div>
+    <nav class="bottom-nav">
+      <button class="nav-btn" onclick="switchTab('home', this)">
+        <span class="nav-icon">🍔</span>
+        <span class="nav-label">Journal</span>
+      </button>
+      <button class="nav-btn active" onclick="switchTab('stats', this)">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Stats</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ═══ ADD SCREEN ═══ -->
+  <div class="screen" id="screen-add">
+    <div class="add-header">
+      <button class="back-btn" onclick="showScreen('home')">←</button>
+      <h2>New Burger</h2>
+      <button class="save-btn" onclick="saveBurger()">Save</button>
+    </div>
+    <div class="form-scroll">
+
+      <div class="form-section">
+        <div class="form-section-title">The Basics</div>
+        <div class="form-row">
+          <label class="form-label">Name</label>
+          <input class="form-input" id="f-name" type="text" placeholder="e.g. Double Smash" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Restaurant</label>
+          <input class="form-input" id="f-restaurant" type="text" placeholder="Where was it?" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Date</label>
+          <input class="form-input" id="f-date" type="date" style="text-align:right;">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Rating</div>
+        <div class="form-row">
+          <label class="form-label">Score</label>
+          <div class="star-rating" id="star-rating">
+            <button class="star-btn" data-val="1" onclick="setRating(1)">☆</button>
+            <button class="star-btn" data-val="2" onclick="setRating(2)">☆</button>
+            <button class="star-btn" data-val="3" onclick="setRating(3)">☆</button>
+            <button class="star-btn" data-val="4" onclick="setRating(4)">☆</button>
+            <button class="star-btn" data-val="5" onclick="setRating(5)">☆</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Toppings</div>
+        <div class="toppings-grid" id="toppings-grid">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Notes</div>
+        <div class="form-row" style="align-items:flex-start;">
+          <textarea class="form-input" id="f-notes" placeholder="How was it? What made it special?"></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Price</div>
+        <div class="form-row">
+          <label class="form-label">Cost</label>
+          <input class="form-input" id="f-price" type="number" min="0" step="0.50" placeholder="$0.00">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ DETAIL SCREEN ═══ -->
+  <div class="screen" id="screen-detail">
+    <div class="detail-header">
+      <button class="detail-back" onclick="showScreen('home')">← Back</button>
+      <div class="detail-title" id="detail-title"></div>
+      <div class="detail-restaurant" id="detail-restaurant"></div>
+    </div>
+    <div class="detail-scroll" id="detail-content"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ── DATA ──
+const TOPPINGS = ['Cheese','Lettuce','Tomato','Onion','Pickles','Bacon','Jalapeños','Avocado','Fried Egg','Mushrooms','BBQ Sauce','Special Sauce','Caramelized Onion'];
+let burgers = JSON.parse(localStorage.getItem('bj_burgers') || '[]');
+let currentRating = 0;
+let selectedToppings = new Set();
+let viewingId = null;
+
+// ── SEED DATA ──
+if (burgers.length === 0) {
+  burgers = [
+    { id: 1, name: 'Classic Smashburger', restaurant: 'The Pit Stop', date: '2025-03-22', rating: 5, toppings: ['Cheese','Pickles','Special Sauce','Onion'], notes: 'Perfect crispy crust. The sauce is their secret weapon. Would absolutely order again.', price: '12.50' },
+    { id: 2, name: 'Mushroom Swiss Melt', restaurant: 'Brew & Grind', date: '2025-03-08', rating: 4, toppings: ['Cheese','Mushrooms','Caramelized Onion'], notes: 'Rich, earthy. Bun could be better but the patty was excellent quality.', price: '15.00' },
+    { id: 3, name: 'Backyard BBQ Stack', restaurant: 'Smoke & Bone', date: '2025-02-14', rating: 5, toppings: ['Bacon','BBQ Sauce','Cheese','Onion'], notes: 'Valentine\'s Day burger. Smoky, sticky, messy perfection.', price: '18.00' },
+  ];
+  save();
+}
+
+function save() {
+  localStorage.setItem('bj_burgers', JSON.stringify(burgers));
+}
+
+// ── SCREENS ──
+function showScreen(name, id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'home') renderList();
+  if (name === 'stats') renderStats();
+  if (name === 'add') initAddForm();
+  if (name === 'detail' && id != null) renderDetail(id);
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // update active state in both nav bars if needed
+  showScreen(name);
+}
+
+// ── RENDER LIST ──
+function renderList() {
+  updateHomeStats();
+  const list = document.getElementById('burger-list');
+  const empty = document.getElementById('empty-state');
+  if (burgers.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+  const sorted = [...burgers].reverse();
+  list.innerHTML = sorted.map(b => `
+    <div class="burger-card" onclick="showScreen('detail', ${b.id})">
+      <div class="card-emoji">${ratingEmoji(b.rating)}</div>
+      <div class="card-body">
+        <div class="card-name">${esc(b.name)}</div>
+        <div class="card-restaurant">${esc(b.restaurant)}</div>
+        <div class="card-meta">
+          <span class="stars">${stars(b.rating)}</span>
+          <span class="card-date">${fmtDate(b.date)}</span>
+          ${b.price ? `<span class="card-date">· $${b.price}</span>` : ''}
+        </div>
+        ${b.toppings.length ? `<div class="toppings-row">${b.toppings.slice(0,4).map(t => `<span class="topping-tag">${esc(t)}</span>`).join('')}${b.toppings.length > 4 ? `<span class="topping-tag">+${b.toppings.length-4}</span>` : ''}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateHomeStats() {
+  document.getElementById('stat-total').textContent = burgers.length;
+  const avg = burgers.length ? (burgers.reduce((a, b) => a + b.rating, 0) / burgers.length).toFixed(1) : '—';
+  document.getElementById('stat-avg').textContent = avg === 'NaN' ? '—' : avg;
+  const spots = new Set(burgers.map(b => b.restaurant.trim().toLowerCase())).size;
+  document.getElementById('stat-spots').textContent = spots;
+}
+
+// ── RENDER STATS ──
+function renderStats() {
+  const el = document.getElementById('stats-content');
+  if (burgers.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-emoji">📊</div><div class="empty-title">Log some burgers first!</div><div class="empty-sub">Stats will appear here once you have a few burgers recorded.</div></div>`;
+    return;
+  }
+  const total = burgers.length;
+  const avg = (burgers.reduce((a, b) => a + b.rating, 0) / total).toFixed(1);
+  const fives = burgers.filter(b => b.rating === 5).length;
+  const spots = new Set(burgers.map(b => b.restaurant.trim().toLowerCase())).size;
+
+  // Top restaurants
+  const restCount = {};
+  burgers.forEach(b => {
+    const k = b.restaurant.trim();
+    restCount[k] = (restCount[k] || 0) + 1;
+  });
+  const topRests = Object.entries(restCount).sort((a,b) => b[1]-a[1]).slice(0,5);
+
+  // Top toppings
+  const topCount = {};
+  burgers.forEach(b => b.toppings.forEach(t => { topCount[t] = (topCount[t]||0)+1; }));
+  const topTops = Object.entries(topCount).sort((a,b) => b[1]-a[1]).slice(0,5);
+
+  el.innerHTML = `
+    <div class="big-stat">
+      <div class="big-stat-num">${total}</div>
+      <div class="big-stat-label">Burgers Logged</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-tile">
+        <div class="stat-tile-num">${avg}</div>
+        <div class="stat-tile-label">Avg Rating</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile-num">${fives}</div>
+        <div class="stat-tile-label">5-Star Burgers</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile-num">${spots}</div>
+        <div class="stat-tile-label">Restaurants</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile-num">${Object.keys(topCount).length}</div>
+        <div class="stat-tile-label">Unique Toppings</div>
+      </div>
+    </div>
+    ${topRests.length > 1 ? `
+    <div class="leaderboard">
+      <div class="leaderboard-title">Top Restaurants</div>
+      ${topRests.map((r, i) => `
+        <div class="leaderboard-row">
+          <div class="rank">${i+1}</div>
+          <div class="leaderboard-name">${esc(r[0])}</div>
+          <div class="leaderboard-count">${r[1]} burger${r[1]>1?'s':''}</div>
+        </div>`).join('')}
+    </div>` : ''}
+    ${topTops.length > 1 ? `
+    <div class="leaderboard">
+      <div class="leaderboard-title">Favourite Toppings</div>
+      ${topTops.map((t, i) => `
+        <div class="leaderboard-row">
+          <div class="rank">${i+1}</div>
+          <div class="leaderboard-name">${esc(t[0])}</div>
+          <div class="leaderboard-count">${t[1]}×</div>
+        </div>`).join('')}
+    </div>` : ''}
+  `;
+}
+
+// ── ADD FORM ──
+function initAddForm() {
+  currentRating = 0;
+  selectedToppings = new Set();
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-restaurant').value = '';
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('f-notes').value = '';
+  document.getElementById('f-price').value = '';
+  renderStars();
+  renderToppingChips();
+}
+
+function setRating(val) {
+  currentRating = val;
+  renderStars();
+}
+function renderStars() {
+  document.querySelectorAll('.star-btn').forEach(btn => {
+    btn.textContent = parseInt(btn.dataset.val) <= currentRating ? '★' : '☆';
+  });
+}
+
+function renderToppingChips() {
+  const grid = document.getElementById('toppings-grid');
+  grid.innerHTML = TOPPINGS.map(t => `
+    <button class="topping-chip${selectedToppings.has(t)?' selected':''}" onclick="toggleTopping('${t}')">${t}</button>
+  `).join('');
+}
+function toggleTopping(t) {
+  selectedToppings.has(t) ? selectedToppings.delete(t) : selectedToppings.add(t);
+  renderToppingChips();
+}
+
+function saveBurger() {
+  const name = document.getElementById('f-name').value.trim();
+  const restaurant = document.getElementById('f-restaurant').value.trim();
+  if (!name) { toast('Please add a burger name'); return; }
+  if (!restaurant) { toast('Please add a restaurant'); return; }
+  const burger = {
+    id: Date.now(),
+    name,
+    restaurant,
+    date: document.getElementById('f-date').value,
+    rating: currentRating || 3,
+    toppings: [...selectedToppings],
+    notes: document.getElementById('f-notes').value.trim(),
+    price: document.getElementById('f-price').value.trim(),
+  };
+  burgers.push(burger);
+  save();
+  showScreen('home');
+  toast('🍔 Burger logged!');
+}
+
+// ── DETAIL ──
+function renderDetail(id) {
+  viewingId = id;
+  const b = burgers.find(x => x.id === id);
+  if (!b) { showScreen('home'); return; }
+  document.getElementById('detail-title').textContent = b.name;
+  document.getElementById('detail-restaurant').textContent = b.restaurant;
+  const el = document.getElementById('detail-content');
+  el.innerHTML = `
+    <div class="detail-card">
+      <div class="detail-row">
+        <div class="detail-row-label">Rating</div>
+        <div class="detail-row-value" style="color:var(--mustard);font-size:1.1rem;">${stars(b.rating)} <span style="color:var(--ash);font-size:0.8rem;margin-left:4px;">${b.rating}/5</span></div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-row-label">Date</div>
+        <div class="detail-row-value">${fmtDate(b.date)}</div>
+      </div>
+      ${b.price ? `<div class="detail-row"><div class="detail-row-label">Price</div><div class="detail-row-value">$${b.price}</div></div>` : ''}
+    </div>
+    ${b.toppings.length ? `
+    <div class="detail-card">
+      <div style="padding:12px 16px;">
+        <div class="leaderboard-title" style="margin-bottom:10px;">Toppings</div>
+        <div class="toppings-row">
+          ${b.toppings.map(t => `<span class="topping-tag" style="font-size:0.75rem;padding:4px 10px;">${esc(t)}</span>`).join('')}
+        </div>
+      </div>
+    </div>` : ''}
+    ${b.notes ? `
+    <div class="detail-card">
+      <div class="leaderboard-title" style="padding:10px 16px 0;">Notes</div>
+      <div class="detail-notes">"${esc(b.notes)}"</div>
+    </div>` : ''}
+    <button class="delete-btn" onclick="deleteBurger(${b.id})">Delete Entry</button>
+  `;
+}
+
+function deleteBurger(id) {
+  if (!confirm('Delete this burger entry?')) return;
+  burgers = burgers.filter(b => b.id !== id);
+  save();
+  showScreen('home');
+  toast('Entry deleted');
+}
+
+// ── HELPERS ──
+function stars(r) { return '★'.repeat(r) + '☆'.repeat(5-r); }
+function ratingEmoji(r) { return r >= 5 ? '🍔' : r >= 4 ? '😋' : r >= 3 ? '🙂' : '😐'; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(d) {
+  if (!d) return '';
+  const parts = d.split('-');
+  const dt = new Date(+parts[0], +parts[1]-1, +parts[2]);
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── INIT ──
+renderList();
+</script>
+</body>
+</html>
