@@ -1,7 +1,7 @@
-const CACHE = 'burger-journal-v1';
+const CACHE = 'burger-journal-v2';
 const ASSETS = [
-  '/',
-  '/index.html',
+  '/burger-journal/',
+  '/burger-journal/index.html',
   'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap'
 ];
 
@@ -35,7 +35,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(cache => cache.put(e.request, copy));
         }
         return response;
-      }).catch(() => caches.match('/index.html'));
+      }).catch(() => caches.match('/burger-journal/index.html'));
     })
   );
 });
