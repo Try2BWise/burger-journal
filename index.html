@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Burgers">
-<meta name="theme-color" content="#c8560a">
+<meta name="theme-color" content="#c8560a" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0a08" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <title>Burger Journal</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -26,13 +27,16 @@
     --card: #fff9f3;
     --border: #ecdcc8;
     --shadow: rgba(30,10,0,0.12);
+    --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 20px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
   }
 
   html, body {
     height: 100%;
     background: var(--char);
-    font-family: 'DM Sans', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
     color: var(--char);
     overflow: hidden;
   }
@@ -51,16 +55,25 @@
 
   /* ── SCREENS ── */
   .screen {
-    display: none;
+    display: flex;
     flex-direction: column;
     flex: 1;
     overflow: hidden;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
   }
-  .screen.active { display: flex; }
+  .screen.active {
+    opacity: 1;
+    pointer-events: auto;
+    position: relative;
+  }
 
   /* ── HEADER ── */
   .header {
-    padding: 54px 22px 16px;
+    padding: calc(var(--safe-top) + 14px) 22px 16px;
     background: var(--bun);
     background-image:
       radial-gradient(ellipse at 20% 0%, #d96b1a 0%, transparent 60%),
@@ -87,7 +100,7 @@
   .header-emoji {
     position: absolute;
     right: 20px;
-    top: 46px;
+    top: calc(var(--safe-top) + 6px);
     font-size: 3.2rem;
     filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
   }
@@ -107,7 +120,6 @@
   }
   .stat:last-child { border-right: none; }
   .stat-num {
-    font-family: 'Playfair Display', serif;
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--mustard);
@@ -127,7 +139,7 @@
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 14px 14px calc(var(--safe-bottom) + 80px);
+    padding: 16px 16px calc(var(--safe-bottom) + 80px);
   }
   .scroll-area::-webkit-scrollbar { display: none; }
 
@@ -138,16 +150,16 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--ash);
-    margin: 8px 2px 10px;
+    margin: 8px 4px 12px;
   }
 
   /* ── BURGER CARD ── */
   .burger-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 14px 16px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     display: flex;
     gap: 12px;
     align-items: flex-start;
@@ -167,9 +179,8 @@
   }
   .card-body { flex: 1; min-width: 0; }
   .card-name {
-    font-family: 'Playfair Display', serif;
     font-size: 1.05rem;
-    font-weight: 700;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -217,31 +228,6 @@
     text-transform: capitalize;
   }
 
-  /* ── FAB ── */
-  .fab {
-    position: absolute;
-    bottom: calc(var(--safe-bottom) + 76px);
-    right: 20px;
-    width: 56px;
-    height: 56px;
-    background: var(--bun);
-    background-image: radial-gradient(circle at 30% 30%, #d96b1a, var(--bun));
-    color: white;
-    border-radius: 50%;
-    border: none;
-    font-size: 1.7rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 20px rgba(200,86,10,0.5);
-    cursor: pointer;
-    transition: transform 0.15s;
-    z-index: 10;
-    -webkit-tap-highlight-color: transparent;
-    line-height: 1;
-  }
-  .fab:active { transform: scale(0.93); }
-
   /* ── BOTTOM NAV ── */
   .bottom-nav {
     display: flex;
@@ -256,7 +242,8 @@
     border: none;
     background: none;
     color: var(--ash);
-    padding: 10px 0 6px;
+    padding: 12px 0 8px;
+    min-height: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -268,10 +255,18 @@
   .nav-btn.active { color: var(--mustard); }
   .nav-icon { font-size: 1.3rem; line-height: 1; }
   .nav-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .nav-btn.add-tab .nav-icon {
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: var(--bun);
+    font-style: normal;
+  }
+  .nav-btn.add-tab .nav-label { color: var(--bun); }
+  .nav-btn:active { opacity: 0.7; }
 
   /* ── ADD SCREEN ── */
   .add-header {
-    padding: 54px 22px 18px;
+    padding: calc(var(--safe-top) + 14px) 22px 18px;
     background: var(--char);
     display: flex;
     align-items: center;
@@ -291,7 +286,12 @@
     color: var(--mustard);
     font-size: 1.5rem;
     cursor: pointer;
-    padding: 4px;
+    padding: 10px 12px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     -webkit-tap-highlight-color: transparent;
   }
   .save-btn {
@@ -299,11 +299,12 @@
     color: white;
     border: none;
     border-radius: 20px;
-    padding: 7px 18px;
+    padding: 10px 22px;
+    min-height: 44px;
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
+    font-family: inherit;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -317,7 +318,7 @@
   .form-section {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 12px;
     margin-bottom: 14px;
     overflow: hidden;
   }
@@ -334,7 +335,7 @@
     align-items: center;
     padding: 0 14px;
     border-bottom: 1px solid var(--border);
-    min-height: 48px;
+    min-height: 52px;
   }
   .form-row:last-child { border-bottom: none; }
   .form-label {
@@ -348,7 +349,7 @@
     flex: 1;
     border: none;
     background: none;
-    font-family: 'DM Sans', sans-serif;
+    font-family: inherit;
     font-size: 0.82rem;
     color: var(--char);
     padding: 12px 0;
@@ -376,6 +377,11 @@
     background: none;
     border: none;
     cursor: pointer;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.1s;
   }
@@ -392,14 +398,14 @@
     background: var(--smoke);
     border: 1.5px solid var(--border);
     border-radius: 20px;
-    padding: 5px 12px;
+    padding: 8px 14px;
     font-size: 0.75rem;
     font-weight: 500;
     color: var(--ash);
     cursor: pointer;
     transition: all 0.15s;
     -webkit-tap-highlight-color: transparent;
-    font-family: 'DM Sans', sans-serif;
+    font-family: inherit;
   }
   .topping-chip.selected {
     background: var(--bun);
@@ -409,7 +415,7 @@
 
   /* ── DETAIL SCREEN ── */
   .detail-header {
-    padding: 54px 22px 0;
+    padding: calc(var(--safe-top) + 14px) 22px 0;
     background: var(--bun);
     background-image: radial-gradient(ellipse at 80% 0%, #d96b1a 0%, transparent 60%);
     color: var(--cream);
@@ -425,7 +431,8 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 0 0 12px;
+    padding: 10px 0 12px;
+    min-height: 44px;
     -webkit-tap-highlight-color: transparent;
   }
   .detail-title {
@@ -449,7 +456,7 @@
   .detail-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 12px;
     margin-bottom: 14px;
     overflow: hidden;
   }
@@ -490,7 +497,7 @@
     color: var(--red);
     font-size: 0.88rem;
     font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
+    font-family: inherit;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     margin-top: 4px;
@@ -498,7 +505,7 @@
 
   /* ── STATS SCREEN ── */
   .stats-header {
-    padding: 54px 22px 18px;
+    padding: calc(var(--safe-top) + 14px) 22px 18px;
     background: var(--char);
     flex-shrink: 0;
   }
@@ -542,18 +549,17 @@
   .stat-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 12px;
     margin-bottom: 12px;
   }
   .stat-tile {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 16px;
     text-align: center;
   }
   .stat-tile-num {
-    font-family: 'Playfair Display', serif;
     font-size: 2rem;
     font-weight: 700;
     color: var(--char);
@@ -570,7 +576,7 @@
   .leaderboard {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
     margin-bottom: 12px;
   }
@@ -585,13 +591,12 @@
   .leaderboard-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
+    gap: 12px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border);
   }
   .leaderboard-row:last-child { border-bottom: none; }
   .rank {
-    font-family: 'Playfair Display', serif;
     font-size: 1rem;
     font-weight: 700;
     color: var(--mustard);
@@ -621,9 +626,8 @@
   }
   .empty-emoji { font-size: 4rem; margin-bottom: 16px; }
   .empty-title {
-    font-family: 'Playfair Display', serif;
     font-size: 1.3rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--char);
     margin-bottom: 8px;
   }
@@ -648,6 +652,67 @@
     z-index: 100;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── DARK MODE ── */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --char: #f2e6d9;
+      --cream: #1a1210;
+      --smoke: #2a1f1a;
+      --card: #261c16;
+      --border: #3a2a1e;
+      --ash: #9a8a7a;
+      --shadow: rgba(0,0,0,0.3);
+      --bun: #d96b1a;
+      --mustard: #f0c050;
+      --red: #e05545;
+    }
+
+    html, body {
+      background: #0d0a08;
+    }
+
+    .header, .detail-header {
+      background-image:
+        radial-gradient(ellipse at 20% 0%, #b85515 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, #7a2d04 0%, transparent 50%);
+    }
+
+    .stats-bar {
+      background: #0d0a08;
+      border-color: #2a1a10;
+    }
+    .stat { border-right-color: #2a1a10; }
+
+    .add-header, .stats-header {
+      background: #0d0a08;
+    }
+
+    .bottom-nav {
+      background: #0d0a08;
+      border-top-color: #2a1a10;
+    }
+
+    .form-input { color: #d4b896; }
+    .form-input::placeholder { color: #5a4a3a; }
+
+    .delete-btn { border-color: #5a2020; }
+
+    .big-stat {
+      background: var(--bun);
+      background-image: radial-gradient(circle at 20% 20%, #b85515, var(--bun));
+    }
+
+    .toast {
+      background: #2a1f1a;
+      color: var(--mustard);
+    }
+
+    .nav-btn.add-tab .nav-icon,
+    .nav-btn.add-tab .nav-label {
+      color: var(--bun);
+    }
+  }
 </style>
 </head>
 <body>
@@ -657,7 +722,7 @@
   <div class="screen active" id="screen-home">
     <div class="header">
       <h1>Burger Journal</h1>
-      <p>Your personal record</p>
+      <p>Every burger has a story</p>
       <div class="header-emoji">🍔</div>
     </div>
     <div class="stats-bar" id="home-stats">
@@ -678,15 +743,18 @@
       <div class="empty-state" id="empty-state">
         <div class="empty-emoji">🍔</div>
         <div class="empty-title">No burgers yet!</div>
-        <div class="empty-sub">Tap + to log your first burger and start building your collection.</div>
+        <div class="empty-sub">Tap Add to log your first burger and start building your collection.</div>
       </div>
       <div id="burger-list"></div>
     </div>
-    <button class="fab" onclick="showScreen('add')" aria-label="Add burger">+</button>
     <nav class="bottom-nav">
       <button class="nav-btn active" onclick="switchTab('home', this)">
         <span class="nav-icon">🍔</span>
         <span class="nav-label">Journal</span>
+      </button>
+      <button class="nav-btn add-tab" onclick="showScreen('add')" aria-label="Add burger">
+        <span class="nav-icon">+</span>
+        <span class="nav-label">Add</span>
       </button>
       <button class="nav-btn" onclick="switchTab('stats', this)">
         <span class="nav-icon">📊</span>
@@ -712,6 +780,10 @@
       <button class="nav-btn" onclick="switchTab('home', this)">
         <span class="nav-icon">🍔</span>
         <span class="nav-label">Journal</span>
+      </button>
+      <button class="nav-btn add-tab" onclick="showScreen('add')" aria-label="Add burger">
+        <span class="nav-icon">+</span>
+        <span class="nav-label">Add</span>
       </button>
       <button class="nav-btn active" onclick="switchTab('stats', this)">
         <span class="nav-icon">📊</span>

@@ -1,8 +1,8 @@
-const CACHE = 'burger-journal-v2';
+const CACHE = 'burger-journal-v3';
 const ASSETS = [
   '/burger-journal/',
   '/burger-journal/index.html',
-  'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap'
+  'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap'
 ];
 
 // Install: cache core assets
